@@ -1,0 +1,26 @@
+[package]
+name = "tutor-db"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4"
+dotenv = "0.15"
+sqlx = { version = "0.8", default-features = false, features = [
+    "postgres",
+    "runtime-tokio-native-tls",
+    "macros",
+    "chrono",
+] }
+serde = { version = "1", features = [
+    "derive",
+] }
+chrono = { version = "0.4", features = [
+    "serde",
+] }
+openssl = { version = "0.10", features = [
+    "vendored",
+] }
+
+[[bin]]
+name = "iter5"

@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "tutor-db",
+]
+
+resolver = "2"
