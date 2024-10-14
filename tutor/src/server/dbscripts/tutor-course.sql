@@ -1,14 +1,12 @@
-/* Drop tables if they already exist*/
-drop table if exists ezy_course_c6 cascade;
-drop table if exists ezy_tutor_c6;
-/* Create tables. */
-create table ezy_tutor_c6 (
+drop table if exists course_practice cascade;
+drop table if exists tutor_practice;
+create table tutor_practice (
     tutor_id serial primary key,
     tutor_name varchar(200) not null,
     tutor_pic_url varchar(200) not null,
     tutor_profile varchar(2000) not null
 );
-create table ezy_course_c6 (
+create table course_practice (
     course_id serial primary key,
     tutor_id INT not null,
     course_name varchar(140) not null,
@@ -20,13 +18,12 @@ create table ezy_course_c6 (
     course_language varchar(30),
     course_level varchar(30),
     posted_time TIMESTAMP default now(),
-    CONSTRAINT fk_tutor FOREIGN KEY(tutor_id) REFERENCES ezy_tutor_c6(tutor_id) ON DELETE cascade
+    CONSTRAINT fk_tutor FOREIGN KEY(tutor_id) REFERENCES tutor_practice(tutor_id) ON DELETE cascade
 );
-grant all privileges on table ezy_tutor_c6 to tutor;
-grant all privileges on table ezy_course_c6 to tutor;
+grant all privileges on table tutor_practice to tutor;
+grant all privileges on table course_practice to tutor;
 grant all privileges on all sequences in schema public to tutor;
-/* Load seed data for testing */
-insert into ezy_tutor_c6(
+insert into tutor_practice (
         tutor_id,
         tutor_name,
         tutor_pic_url,
@@ -38,7 +35,7 @@ values(
         'http://s3.amazon.aws.com/pic1',
         'Merlene is an experienced finance professional'
     );
-insert into ezy_tutor_c6(
+insert into tutor_practice (
         tutor_id,
         tutor_name,
         tutor_pic_url,
@@ -50,7 +47,7 @@ values(
         'http://s3.amazon.aws.com/pic2',
         'Frank is an expert nuclear engineer'
     );
-insert into ezy_course_c6 (
+insert into course_practice (
         course_id,
         tutor_id,
         course_name,
@@ -64,7 +61,7 @@ values(
         'Beginner',
         '2021-04-12 05:40:00'
     );
-insert into ezy_course_c6 (
+insert into course_practice (
         course_id,
         tutor_id,
         course_name,

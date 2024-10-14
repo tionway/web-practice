@@ -3,8 +3,8 @@ use serde::Serialize;
 use sqlx::error::Error as SQLxError;
 use std::fmt::{self, Debug};
 
-#[derive(Debug, Serialize)]
-pub enum EzyTutorError {
+#[derive(Debug, Serialize, Clone)]
+pub enum TutorError {
     DBError(String),
     ActixError(String),
     NotFound(String),
@@ -16,22 +16,22 @@ pub struct MyErrorResponse {
     error_message: String,
 }
 
-impl EzyTutorError {
+impl TutorError {
     fn error_response(&self) -> String {
         match self {
-            EzyTutorError::DBError(msg) => {
+            TutorError::DBError(msg) => {
                 println!("Database error occurred: {:?}", msg);
                 "Database error".into()
             }
-            EzyTutorError::ActixError(msg) => {
+            TutorError::ActixError(msg) => {
                 println!("Server error occurred: {:?}", msg);
                 "Internal server error".into()
             }
-            EzyTutorError::NotFound(msg) => {
+            TutorError::NotFound(msg) => {
                 println!("Not found error occurred: {:?}", msg);
                 msg.into()
             }
-            EzyTutorError::InvalidInput(msg) => {
+            TutorError::InvalidInput(msg) => {
                 println!("Invalid parameters received: {:?}", msg);
                 msg.into()
             }
@@ -39,14 +39,14 @@ impl EzyTutorError {
     }
 }
 
-impl error::ResponseError for EzyTutorError {
+impl error::ResponseError for TutorError {
     fn status_code(&self) -> StatusCode {
         match self {
-            EzyTutorError::DBError(_) | EzyTutorError::ActixError(_) => {
+            TutorError::DBError(_) | TutorError::ActixError(_) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
-            EzyTutorError::NotFound(_) => StatusCode::NOT_FOUND,
-            EzyTutorError::InvalidInput(_) => StatusCode::BAD_REQUEST,
+            TutorError::NotFound(_) => StatusCode::NOT_FOUND,
+            TutorError::InvalidInput(_) => StatusCode::BAD_REQUEST,
         }
     }
     fn error_response(&self) -> HttpResponse {
@@ -56,21 +56,20 @@ impl error::ResponseError for EzyTutorError {
     }
 }
 
-impl fmt::Display for EzyTutorError {
+impl fmt::Display for TutorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let s = self;
-        write!(f, "{}", s)
+        write!(f, "{:?}", self)
     }
 }
 
-impl From<actix_web::error::Error> for EzyTutorError {
+impl From<actix_web::error::Error> for TutorError {
     fn from(err: actix_web::error::Error) -> Self {
-        EzyTutorError::ActixError(err.to_string())
+        TutorError::ActixError(err.to_string())
     }
 }
 
-impl From<SQLxError> for EzyTutorError {
+impl From<SQLxError> for TutorError {
     fn from(err: SQLxError) -> Self {
-        EzyTutorError::DBError(err.to_string())
+        TutorError::DBError(err.to_string())
     }
 }

@@ -1,14 +1,14 @@
-use crate::errors::EzyTutorError;
+use crate::errors::TutorError;
 use crate::models::course::{Course, CreateCourse, UpdateCourse};
 use sqlx::postgres::PgPool;
 
 pub async fn get_courses_for_tutor_db(
     pool: &PgPool,
     tutor_id: i32,
-) -> Result<Vec<Course>, EzyTutorError> {
+) -> Result<Vec<Course>, TutorError> {
     let course_rows: Vec<Course> = sqlx::query_as!(
         Course,
-        "SELECT * FROM ezy_course_c6 where tutor_id = $1",
+        "SELECT * FROM course_practice where tutor_id = $1",
         tutor_id
     )
     .fetch_all(pool)
@@ -21,32 +21,30 @@ pub async fn get_course_details_db(
     pool: &PgPool,
     tutor_id: i32,
     course_id: i32,
-) -> Result<Course, EzyTutorError> {
-    // Prepare SQL statement
+) -> Result<Course, TutorError> {
     let course_row = sqlx::query_as!(
         Course,
-        "SELECT * FROM ezy_course_c6 where tutor_id = $1 and course_id = $2",
+        "SELECT * FROM course_practice where tutor_id = $1 and course_id = $2",
         tutor_id,
         course_id
     )
     .fetch_optional(pool)
     .await?;
 
-    // Execute query
     if let Some(course) = course_row {
         Ok(course)
     } else {
-        Err(EzyTutorError::NotFound("Course id not found".into()))
+        Err(TutorError::NotFound("Course id not found".into()))
     }
 }
 
 pub async fn post_new_course_db(
     pool: &PgPool,
     new_course: CreateCourse,
-) -> Result<Course, EzyTutorError> {
+) -> Result<Course, TutorError> {
     let course_row = sqlx::query_as!(
         Course,
-        "insert into ezy_course_c6 (
+        "insert into course_practice (
         tutor_id, course_name, course_description,course_duration,
         course_level, course_format, course_language, course_structure,
         course_price) values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning
@@ -73,10 +71,9 @@ pub async fn delete_course_db(
     pool: &PgPool,
     tutor_id: i32,
     course_id: i32,
-) -> Result<String, EzyTutorError> {
-    // Prepare SQL statement
+) -> Result<String, TutorError> {
     let course_row = sqlx::query!(
-        "DELETE FROM ezy_course_c6 where tutor_id = $1 and course_id = $2",
+        "DELETE FROM course_practice where tutor_id = $1 and course_id = $2",
         tutor_id,
         course_id,
     )
@@ -91,18 +88,16 @@ pub async fn update_course_details_db(
     tutor_id: i32,
     course_id: i32,
     update_course: UpdateCourse,
-) -> Result<Course, EzyTutorError> {
-    // Retrieve current record
+) -> Result<Course, TutorError> {
     let current_course_row = sqlx::query_as!(
         Course,
-        "SELECT * FROM ezy_course_c6 where tutor_id = $1 and course_id = $2",
+        "SELECT * FROM course_practice where tutor_id = $1 and course_id = $2",
         tutor_id,
         course_id
     )
     .fetch_one(pool)
     .await
-    .map_err(|_err| EzyTutorError::NotFound("Course id not found".into()))?;
-    // Construct the parameters for update:
+    .map_err(|_err| TutorError::NotFound("Course id not found".into()))?;
 
     let name: String = if let Some(name) = update_course.course_name {
         name
@@ -145,10 +140,9 @@ pub async fn update_course_details_db(
         current_course_row.course_price.unwrap_or_default()
     };
 
-    // Prepare SQL statement
     let course_row = sqlx::query_as!(
         Course,
-        "UPDATE ezy_course_c6 set course_name = $1,
+        "UPDATE course_practice set course_name = $1,
         course_description = $2, course_format = $3,
         course_structure = $4, course_duration = $5, course_price = $6,
         course_language = $7,
@@ -173,6 +167,6 @@ pub async fn update_course_details_db(
     if let Ok(course) = course_row {
         Ok(course)
     } else {
-        Err(EzyTutorError::NotFound("Course id not found".into()))
+        Err(TutorError::NotFound("Course id not found".into()))
     }
 }

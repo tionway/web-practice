@@ -2,7 +2,7 @@ use crate::handlers::{course::*, general::*, tutor::*};
 use actix_web::web;
 
 pub fn general_routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/health", web::get().to(health_check_handler));
+    cfg.route("/sign", web::get().to(sign_check_handler));
 }
 
 pub fn course_routes(cfg: &mut web::ServiceConfig) {

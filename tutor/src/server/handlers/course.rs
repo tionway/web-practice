@@ -1,4 +1,4 @@
-use crate::errors::EzyTutorError;
+use crate::errors::TutorError;
 use crate::models::course::UpdateCourse;
 use crate::state::AppState;
 use crate::{db_access::course::*, models::course::CreateCourse};
@@ -8,7 +8,7 @@ use actix_web::{web, HttpResponse};
 pub async fn get_courses_for_tutor(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
-) -> Result<HttpResponse, EzyTutorError> {
+) -> Result<HttpResponse, TutorError> {
     let tutor_id = path.into_inner();
     get_courses_for_tutor_db(&app_state.db, tutor_id)
         .await
@@ -18,7 +18,7 @@ pub async fn get_courses_for_tutor(
 pub async fn get_course_details(
     app_state: web::Data<AppState>,
     params: web::Path<(i32, i32)>,
-) -> Result<HttpResponse, EzyTutorError> {
+) -> Result<HttpResponse, TutorError> {
     let (tutor_id, course_id) = params.into_inner();
     get_course_details_db(&app_state.db, tutor_id, course_id)
         .await
@@ -28,7 +28,7 @@ pub async fn get_course_details(
 pub async fn post_new_course(
     new_course: web::Json<CreateCourse>,
     app_state: web::Data<AppState>,
-) -> Result<HttpResponse, EzyTutorError> {
+) -> Result<HttpResponse, TutorError> {
     post_new_course_db(&app_state.db, new_course.into())
         .await
         .map(|course| HttpResponse::Ok().json(course))
@@ -37,7 +37,7 @@ pub async fn post_new_course(
 pub async fn delete_course(
     app_state: web::Data<AppState>,
     path: web::Path<(i32, i32)>,
-) -> Result<HttpResponse, EzyTutorError> {
+) -> Result<HttpResponse, TutorError> {
     let (tutor_id, course_id) = path.into_inner();
     delete_course_db(&app_state.db, tutor_id, course_id)
         .await
@@ -48,7 +48,7 @@ pub async fn update_course_details(
     app_state: web::Data<AppState>,
     update_course: web::Json<UpdateCourse>,
     path: web::Path<(i32, i32)>,
-) -> Result<HttpResponse, EzyTutorError> {
+) -> Result<HttpResponse, TutorError> {
     let (tutor_id, course_id) = path.into_inner();
     update_course_details_db(&app_state.db, tutor_id, course_id, update_course.into())
         .await
@@ -73,7 +73,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let tutor_id: web::Path<i32> = web::Path::from(1);
@@ -89,7 +89,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let parameters: web::Path<(i32, i32)> = web::Path::from((1, 1));
@@ -104,7 +104,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let parameters: web::Path<(i32, i32)> = web::Path::from((1, 21));
@@ -123,7 +123,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let new_course_msg = CreateCourse {
@@ -149,7 +149,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let update_course_msg = UpdateCourse {
@@ -178,7 +178,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let parameters: web::Path<(i32, i32)> = web::Path::from((1, 5));
@@ -193,7 +193,7 @@ mod tests {
         let pool: PgPool = PgPool::connect(&database_url).await.unwrap();
         let app_state: web::Data<AppState> = web::Data::new(AppState {
             health_check_response: "".to_string(),
-            visit_count: Mutex::new(0),
+            sign_count: Mutex::new(0),
             db: pool,
         });
         let parameters: web::Path<(i32, i32)> = web::Path::from((1, 21));

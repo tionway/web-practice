@@ -1,15 +1,13 @@
-use crate::errors::EzyTutorError;
+use crate::errors::TutorError;
 use crate::models::tutor::{NewTutor, Tutor, UpdateTutor};
 use sqlx::postgres::PgPool;
 
-pub async fn get_all_tutors_db(pool: &PgPool) -> Result<Vec<Tutor>, EzyTutorError> {
-    // Prepare SQL statement
+pub async fn get_all_tutors_db(pool: &PgPool) -> Result<Vec<Tutor>, TutorError> {
     let tutor_rows =
-        sqlx::query!("SELECT tutor_id, tutor_name, tutor_pic_url, tutor_profile FROM ezy_tutor_c6")
+        sqlx::query!("SELECT tutor_id, tutor_name, tutor_pic_url, tutor_profile FROM tutor_practice")
             .fetch_all(pool)
             .await?;
 
-    // Extract result
     let tutors: Vec<Tutor> = tutor_rows
         .iter()
         .map(|tutor_row| Tutor {
@@ -20,15 +18,14 @@ pub async fn get_all_tutors_db(pool: &PgPool) -> Result<Vec<Tutor>, EzyTutorErro
         })
         .collect();
     match tutors.len() {
-        0 => Err(EzyTutorError::NotFound("No tutors found".into())),
+        0 => Err(TutorError::NotFound("No tutors found".into())),
         _ => Ok(tutors),
     }
 }
 
-pub async fn get_tutor_details_db(pool: &PgPool, tutor_id: i32) -> Result<Tutor, EzyTutorError> {
-    // Prepare SQL statement
+pub async fn get_tutor_details_db(pool: &PgPool, tutor_id: i32) -> Result<Tutor, TutorError> {
     let tutor_row = sqlx::query!(
-        "SELECT tutor_id, tutor_name, tutor_pic_url, tutor_profile FROM ezy_tutor_c6 where tutor_id = $1",
+        "SELECT tutor_id, tutor_name, tutor_pic_url, tutor_profile FROM tutor_practice where tutor_id = $1",
         tutor_id
     )
     .fetch_one(pool)
@@ -39,13 +36,13 @@ pub async fn get_tutor_details_db(pool: &PgPool, tutor_id: i32) -> Result<Tutor,
         tutor_pic_url: tutor_row.tutor_pic_url,
         tutor_profile: tutor_row.tutor_profile,
     })
-    .map_err(|_err| EzyTutorError::NotFound("Tutor id not found".into()))?;
+    .map_err(|_err| TutorError::NotFound("Tutor id not found".into()))?;
     Ok(tutor_row)
 }
 
-pub async fn post_new_tutor_db(pool: &PgPool, new_tutor: NewTutor) -> Result<Tutor, EzyTutorError> {
+pub async fn post_new_tutor_db(pool: &PgPool, new_tutor: NewTutor) -> Result<Tutor, TutorError> {
     let tutor_row = sqlx::query!(
-        "insert into ezy_tutor_c6 (tutor_name, tutor_pic_url, tutor_profile) values ($1, $2, $3) returning tutor_id, tutor_name, tutor_pic_url, tutor_profile",
+        "insert into tutor_practice (tutor_name, tutor_pic_url, tutor_profile) values ($1, $2, $3) returning tutor_id, tutor_name, tutor_pic_url, tutor_profile",
         new_tutor.tutor_name,
         new_tutor.tutor_pic_url,
         new_tutor.tutor_profile
@@ -65,15 +62,15 @@ pub async fn update_tutor_details_db(
     pool: &PgPool,
     tutor_id: i32,
     update_tutor: UpdateTutor,
-) -> Result<Tutor, EzyTutorError> {
+) -> Result<Tutor, TutorError> {
     let current_tutor_row = sqlx::query_as!(
         Tutor,
-        "SELECT * FROM ezy_tutor_c6 where tutor_id = $1",
+        "SELECT * FROM tutor_practice where tutor_id = $1",
         tutor_id,
     )
     .fetch_one(pool)
     .await
-    .map_err(|_err| EzyTutorError::NotFound("Course id not found".into()))?;
+    .map_err(|_err| TutorError::NotFound("Course id not found".into()))?;
 
     let tutor_name = update_tutor.tutor_name.unwrap_or(current_tutor_row.tutor_name);
     let tutor_pic_url = update_tutor.tutor_pic_url.unwrap_or(current_tutor_row.tutor_pic_url);
@@ -81,7 +78,7 @@ pub async fn update_tutor_details_db(
 
     let tutor_row = sqlx::query_as!(
         Tutor,
-        "UPDATE ezy_tutor_c6 set tutor_name = $1, tutor_pic_url = $2, tutor_profile = $3 returning tutor_id, tutor_name, tutor_pic_url, tutor_profile", 
+        "UPDATE tutor_practice set tutor_name = $1, tutor_pic_url = $2, tutor_profile = $3 returning tutor_id, tutor_name, tutor_pic_url, tutor_profile", 
         tutor_name, 
         tutor_pic_url, 
         tutor_profile
@@ -89,11 +86,11 @@ pub async fn update_tutor_details_db(
     .fetch_one(pool)
     .await;
 
-    tutor_row.map_err(|_err| EzyTutorError::NotFound("Course id not found".into()))
+    tutor_row.map_err(|_err| TutorError::NotFound("Course id not found".into()))
 }
 
-pub async fn delete_tutor_db(pool: &PgPool, tutor_id: i32) -> Result<String, EzyTutorError> {
-    let course_row = sqlx::query!("DELETE FROM ezy_tutor_c6 where tutor_id = $1", tutor_id,)
+pub async fn delete_tutor_db(pool: &PgPool, tutor_id: i32) -> Result<String, TutorError> {
+    let course_row = sqlx::query!("DELETE FROM tutor_practice where tutor_id = $1", tutor_id,)
         .execute(pool)
         .await?;
 
